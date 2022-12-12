@@ -4,20 +4,12 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"github.com/aka-yz/go-micro-core/providers/config/log"
+	"github.com/aka-yz/go-micro-core/providers/transport"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
-)
-
-var (
-	// for stop()
-	exitChan chan bool
-	// CustomErrCh setup services
-	CustomErrCh chan error
-
-	HttpErrCh chan error
 )
 
 const (
@@ -33,8 +25,8 @@ func Run(objs ...interface{}) {
 	flag.Parse()
 	// step-1: initial env, config, log configuration
 	initEnv()
-	InitConfig()
-	initLog()
+	initConfig()
+	initLog(conf)
 
 	// step-2: register providers(objs)
 	RegisterProvider(objs...)
@@ -65,42 +57,20 @@ func Run(objs ...interface{}) {
 		}
 	}
 
-	//server := handler.NewServer(customErrCh)
-	//
-	// start http server
-
-	//go func() {
-	//	httpErrCh <- server.ListenAndServe()
-	//}()
-
 	// Monitor system signal like INT or KILL
 	sigint := make(chan os.Signal, 1)
 	signal.Notify(sigint, os.Interrupt, syscall.SIGTERM, syscall.SIGKILL, syscall.SIGINT)
 
 	select {
 	case s := <-sigint:
-		Logger.Warn().Msgf("received signal %s; shutting down", s)
-		_, cancel := context.WithTimeout(context.Background(), 15*time.Second)
-		defer cancel()
-		//if err := server.GracefulShutDown(ctx); err != nil {
-		//	Logger.Fatal().Msgf("Server Shutdown on SIGINT: %s", err)
-		//}
-	case err := <-HttpErrCh:
+		log.Warnf(context.TODO(), "received signal %s; shutting down", s)
+	case err := <-transport.HttpErrCh:
 		if err != nil && err != http.ErrServerClosed {
-			Logger.Fatal().Msgf("HTTP server error: %s\n", err)
-		}
-	case err := <-CustomErrCh:
-		if err != nil {
-			Logger.Fatal().Msgf("custom error: %s", err)
+			log.Fatalf(context.TODO(), "HTTP server error: %s\n", err)
 		}
 	}
 
-	exitChan = make(chan bool, 1)
 	stopObjectInOrder()
-}
-
-func Stop() {
-	exitChan <- true
 }
 
 func stopObjectInOrder() {

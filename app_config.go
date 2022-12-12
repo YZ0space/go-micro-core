@@ -10,7 +10,7 @@ import (
 var conf config.Provider
 
 var (
-	configPath = flag.String("-p", "../config/service.yml", "config for service")
+	configPath = flag.String("-p", "./config/application.yml", "config for service")
 	prefix     string
 )
 
@@ -18,7 +18,7 @@ func SetConfigPathPrefix(pathPrefix string) {
 	prefix = pathPrefix
 }
 
-func InitConfig() {
+func initConfig() {
 	path := *configPath
 	if !Env.Dev() {
 		path = fmt.Sprintf(".%v/config/application.%v.yml", prefix, Env)
