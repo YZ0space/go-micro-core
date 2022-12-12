@@ -1,4 +1,4 @@
-module go-micro-core
+module github.com/aka-yz/go-micro-core
 
 go 1.18
 
