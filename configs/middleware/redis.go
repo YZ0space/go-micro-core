@@ -1,9 +1,7 @@
 package middleware
 
 import (
-	"context"
 	"crypto/tls"
-	"github.com/aka-yz/go-micro-core/configs/log"
 	"github.com/aka-yz/go-micro-core/providers/option"
 	"github.com/go-redis/redis/v8"
 	"time"
@@ -42,9 +40,6 @@ func NewClient(opt *option.Redis) redis.UniversalClient {
 			PoolSize:    opt.PoolSize,
 			Password:    opt.Password,
 		})
-	}
-	if err := redisClient.Ping(context.TODO()).Err(); err != nil {
-		log.Fatalf(context.TODO(), "failed to connect to redis; configs: %v", opt)
 	}
 	return redisClient
 }
