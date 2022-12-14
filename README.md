@@ -1,6 +1,5 @@
 # go-micro-core
 
-
 name = github.com/aka-yz/go-micro-core
 
 version = go1.18
@@ -15,7 +14,10 @@ micro service core module, include:
 
 use it:
 
-````go get -u "github.com/aka-yz/go-micro-core@v0.0.4"````
+````
+  go get -u "github.com/aka-yz/go-micro-core@v0.0.4"
+````
+
 
 redis-client: https://github.com/go-redis/redis/v8
 

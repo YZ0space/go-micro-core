@@ -5,6 +5,8 @@ const (
 	ConfigKeyMysql      = "db"
 	ConfigKeyRedis      = "redis"
 	ConfigKeyLog        = "log"
+	ConfigHttpClient    = "httpclient"
+	ConfigApp           = "app"
 )
 
 // AllowedOrigins used in local test only

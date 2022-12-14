@@ -1,11 +1,8 @@
 package go_micro_core
 
 import (
-	"context"
 	"flag"
 	"fmt"
-	"github.com/aka-yz/go-micro-core/providers/config/log"
-	"github.com/aka-yz/go-micro-core/providers/transport"
 	"net/http"
 	"os"
 	"os/signal"
@@ -16,6 +13,8 @@ const (
 	stopOrderKey = "injects_objects_stop_order"
 )
 
+var HttpErrCh chan error
+
 var defaultStopOrder = []string{
 	"*grpc.RPCServer",
 	"*http.HTTPServer",
@@ -23,7 +22,7 @@ var defaultStopOrder = []string{
 
 func Run(objs ...interface{}) {
 	flag.Parse()
-	// step-1: initial env, config, log configuration
+	// step-1: initial env, configs, log configuration
 	initEnv()
 	initConfig()
 	initLog(conf)
@@ -63,10 +62,10 @@ func Run(objs ...interface{}) {
 
 	select {
 	case s := <-sigint:
-		log.Warnf(context.TODO(), "received signal %s; shutting down", s)
-	case err := <-transport.HttpErrCh:
+		fmt.Printf("received signal %s; shutting down", s)
+	case err := <-HttpErrCh:
 		if err != nil && err != http.ErrServerClosed {
-			log.Fatalf(context.TODO(), "HTTP server error: %s\n", err)
+			fmt.Printf("HTTP server error: %s\n", err)
 		}
 	}
 

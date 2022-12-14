@@ -40,7 +40,7 @@ type Postgresql struct {
 	// Only available from pg-9.0.
 	ApplicationName string
 
-	// TLS config for secure connections.
+	// TLS configs for secure connections.
 	TLSConfig *tls.Config
 
 	// Dial timeout for establishing new connections.

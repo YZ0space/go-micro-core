@@ -10,7 +10,7 @@ import (
 var conf config.Provider
 
 var (
-	configPath = flag.String("-p", "./config/application.yml", "config for service")
+	configPath = flag.String("p", "./configs/application.yml", "configs for service")
 	prefix     string
 )
 
@@ -21,7 +21,7 @@ func SetConfigPathPrefix(pathPrefix string) {
 func initConfig() {
 	path := *configPath
 	if !Env.Dev() {
-		path = fmt.Sprintf(".%v/config/application.%v.yml", prefix, Env)
+		path = fmt.Sprintf(".%v/configs/application-%v.yml", prefix, Env)
 	}
 
 	var err error
