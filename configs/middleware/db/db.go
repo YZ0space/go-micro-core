@@ -3,6 +3,7 @@ package db
 import (
 	"fmt"
 	"github.com/aka-yz/go-micro-core/providers/option"
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/gocraft/dbr/v2"
 	"time"
 )
@@ -58,6 +59,7 @@ func OpenDB(option *option.DB) *Connection {
 	if option.Driver == "" {
 		option.Driver = "mysql"
 	}
+
 	var conn *dbr.Connection
 	var err error
 	var logEventReceiver = NewEventReceiver(dbName(option.DataSource), 200, 200)

@@ -10,6 +10,7 @@ require (
 	github.com/gin-gonic/gin v1.8.1
 	github.com/go-pg/pg/v10 v10.10.7
 	github.com/go-redis/redis/v8 v8.11.5
+	github.com/go-sql-driver/mysql v1.7.0
 	github.com/go-yaml/yaml v2.1.0+incompatible
 	github.com/gocraft/dbr/v2 v2.7.3
 	github.com/golang/protobuf v1.5.2
