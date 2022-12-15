@@ -8,11 +8,10 @@ const (
 	ConfigHttpClient    = "httpclient"
 	ConfigSrvKey        = "gin-server"
 	ConfigApp           = "app"
-
-	HandlerInjectName = "handler"
-
-	GinMethodGet  = "get"
-	GinMethodPost = "post"
+	ConfigCron          = "cron-pool"
+	HandlerInjectName   = "gin-handler"
+	GinMethodGet        = "GET"
+	GinMethodPost       = "POST"
 )
 
 // AllowedOrigins used in local test only

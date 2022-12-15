@@ -7,6 +7,7 @@ import (
 	"strings"
 )
 
+// MD todo: 预留grpc的上下文 metadata
 type MD map[string][]string
 
 func New(m map[string]string) MD {

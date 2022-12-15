@@ -135,6 +135,7 @@ func (h *HttpClient) bodyReader(body interface{}) (io.Reader, error) {
 }
 
 func NewHttpClient(opts ...Option) *HttpClient {
+	// anyway  先默认吧 不走配置了
 	opt := options{
 		maxConnectionNum:    100,
 		timeout:             60 * time.Second,

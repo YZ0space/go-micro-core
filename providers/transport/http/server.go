@@ -5,6 +5,7 @@ import (
 	"github.com/aka-yz/go-micro-core"
 	"github.com/aka-yz/go-micro-core/configs/log"
 	"github.com/aka-yz/go-micro-core/extension"
+	"github.com/aka-yz/go-micro-core/monitors"
 	"github.com/aka-yz/go-micro-core/providers/constants"
 	"github.com/facebookgo/inject"
 	"github.com/gin-gonic/gin"
@@ -22,7 +23,8 @@ func (s *serverFactory) NewProvider(conf config.Provider) go_micro_core.Provider
 		return go_micro_core.ProvideFunc(func() []*inject.Object {
 			name := constants.ConfigSrvKey
 			return []*inject.Object{
-				&inject.Object{Name: name, Value: srv},
+				{Name: name, Value: srv},
+				{Value: monitors.NewPrometheusMetrics(srv)},
 			}
 		})
 	}
@@ -32,6 +34,7 @@ func (s *serverFactory) NewProvider(conf config.Provider) go_micro_core.Provider
 type Server struct {
 	r      *gin.Engine
 	Server *http.Server
+	opts   ServerOptions
 
 	closeSyncJob  chan<- struct{}
 	syncJobClosed <-chan struct{}
@@ -40,26 +43,31 @@ type Server struct {
 func (s *Server) Init() {
 	handler := go_micro_core.ScanGinHandler(constants.HandlerInjectName)
 	if handler == nil {
-		log.Errorf(context.Background(), "handler 异常")
+		log.Warnf(context.Background(), "handler 异常")
+
 		return
 	}
 	s.r.Use(handler.MiddlewareList()...)
-	s.addHandlers(handler.HandlerList())
-}
-
-func (s *Server) addHandlers(HandlerList []*extension.GinHandlerRegister) {
-	for _, l := range HandlerList {
-		s.r.Handle(l.HttpMethod, l.RelativePath, l.Handlers...)
-	}
+	s.AddHandlers(handler.HandlerList())
 }
 
 func (s *Server) Start() {
 	go func() {
 		go_micro_core.HttpErrCh <- s.Server.ListenAndServe()
 	}()
+	//go func() {
+	//	服务注册
+	//s.register()
+	//}()
 }
 
 func (s *Server) Stop() {
+	//if s.opts.registry == nil {
+	//	return
+	//}
+	//if err := s.opts.registry.Deregister(s.opts.service); err != nil {
+	//	log.Infof(context.Background(), "Deregister failed service:%v error:%v", json.MustString(s.opts.service), err)
+	//}
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	if err := s.Server.Shutdown(ctx); err != nil {
@@ -71,8 +79,36 @@ func (s *Server) Stop() {
 	}
 }
 
+//func (s *Server) register() {
+//	if s.opts.registry == nil {
+//		return
+//	}
+//	addr := strings.Split(s.opts.addr, ":")
+//	if len(addr) != 2 {
+//		panic(fmt.Errorf("error register addr:%v", addr))
+//	}
+//	port, _ := strconv.Atoi(addr[1])
+//	s.opts.service.Nodes[0].Address = addr[0]
+//	s.opts.service.Nodes[0].Port = port
+//
+//	for {
+//		if err := s.opts.registry.Register(s.opts.service); err == nil {
+//			log.Infof(context.Background(), "HTTP Server register:", json.MustString(s.opts.service))
+//		}
+//
+//		time.Sleep(time.Second * 15)
+//	}
+//}
+
+func (s *Server) AddHandlers(HandlerList []*extension.GinHandlerRegister) {
+	for _, l := range HandlerList {
+		s.r.Handle(l.HttpMethod, l.RelativePath, l.Handlers...)
+	}
+}
+
 func newHTTPServer(cfg *serverConfig) *Server {
 	r := gin.New()
+	r.Use(Logger())
 	return &Server{
 		r: r,
 		Server: &http.Server{
@@ -85,9 +121,49 @@ func newHTTPServer(cfg *serverConfig) *Server {
 	}
 }
 
+func Logger() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// Start timer
+		start := time.Now()
+		path := c.Request.URL.Path
+		raw := c.Request.URL.RawQuery
+
+		// Process request
+		c.Next()
+
+		param := gin.LogFormatterParams{
+			Request: c.Request,
+			Keys:    c.Keys,
+		}
+		// Stop timer
+		param.TimeStamp = time.Now()
+		param.Latency = param.TimeStamp.Sub(start)
+
+		param.ClientIP = c.ClientIP()
+		param.Method = c.Request.Method
+		param.StatusCode = c.Writer.Status()
+		param.ErrorMessage = c.Errors.ByType(gin.ErrorTypePrivate).String()
+
+		param.BodySize = c.Writer.Size()
+
+		if raw != "" {
+			path = path + "?" + raw
+		}
+
+		param.Path = path
+		log.Infof(c, "[GIN] %3d| %13v | %15s |%-7s %#v |%s",
+			param.StatusCode,
+			param.Latency,
+			param.ClientIP,
+			param.Method,
+			param.Path,
+			param.ErrorMessage)
+
+	}
+}
+
 type serverConfig struct {
-	Addr  string
-	PProf string
+	Addr string
 }
 
 func getServerConfig(conf config.Provider) *serverConfig {
@@ -108,12 +184,7 @@ func getServerConfig(conf config.Provider) *serverConfig {
 }
 
 func port(addr string) string {
-	port := os.Getenv("PORT_" + addr)
-	if port != "" {
-		return ":" + port
-	}
-
-	port = os.Getenv("PORT")
+	port := os.Getenv("PORT")
 	if port != "" {
 		return ":" + port
 	}

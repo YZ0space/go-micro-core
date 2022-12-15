@@ -3,6 +3,7 @@ package registry
 
 import "errors"
 
+// Registry
 // The registry provides an interface for service discovery
 // and an abstraction over varying implementations
 // {consul, etcd, zookeeper, ...}

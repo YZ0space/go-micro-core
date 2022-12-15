@@ -10,12 +10,12 @@ micro service core module, include:
 - local env-param read
 - app config(yaml, based viper) read & config
 - mysql, pg, redis connection initial
-
+- cron-job
 
 use it:
 
 ````
-  go get -u "github.com/aka-yz/go-micro-core@v0.0.4"
+  go get -u "github.com/aka-yz/go-micro-core"
 ````
 
 
@@ -26,3 +26,5 @@ postgresql-client: https://github.com/go-pg/pg
 mysql-client: https://github.com/gocraft/dbr/v2
 
 log: https://github.com/rs/zerolog
+
+cron-job: https://github.com/robfig/cron

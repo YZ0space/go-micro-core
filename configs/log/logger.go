@@ -19,7 +19,7 @@ func (l *Logger) Debug(ctx context.Context, msg string) {
 	for k, v := range withCtx(ctx) {
 		evt = evt.Str(k, v)
 	}
-	evt.Msgf(msg)
+	evt.Msgf(msg + "\n")
 }
 
 func (l *Logger) Debugf(ctx context.Context, format string, a ...interface{}) {
@@ -27,7 +27,7 @@ func (l *Logger) Debugf(ctx context.Context, format string, a ...interface{}) {
 	for k, v := range withCtx(ctx) {
 		evt = evt.Str(k, v)
 	}
-	evt.Msgf(format, a)
+	evt.Msgf(fmt.Sprintf(format, a) + "\n")
 }
 
 func (l *Logger) Info(ctx context.Context, msg string) {
@@ -35,7 +35,7 @@ func (l *Logger) Info(ctx context.Context, msg string) {
 	for k, v := range withCtx(ctx) {
 		evt = evt.Str(k, v)
 	}
-	evt.Msg(msg)
+	evt.Msg(msg + "\n")
 }
 
 func (l *Logger) Infof(ctx context.Context, format string, a ...interface{}) {
@@ -43,7 +43,7 @@ func (l *Logger) Infof(ctx context.Context, format string, a ...interface{}) {
 	for k, v := range withCtx(ctx) {
 		evt = evt.Str(k, v)
 	}
-	evt.Msgf(format, a)
+	evt.Msgf(fmt.Sprintf(format, a) + "\n")
 }
 
 func (l *Logger) Warn(ctx context.Context, msg string) {
@@ -51,7 +51,7 @@ func (l *Logger) Warn(ctx context.Context, msg string) {
 	for k, v := range withCtx(ctx) {
 		evt = evt.Str(k, v)
 	}
-	evt.Msg(msg)
+	evt.Msg(msg + "\n")
 }
 
 func (l *Logger) Warnf(ctx context.Context, format string, a ...interface{}) {
@@ -59,7 +59,7 @@ func (l *Logger) Warnf(ctx context.Context, format string, a ...interface{}) {
 	for k, v := range withCtx(ctx) {
 		evt = evt.Str(k, v)
 	}
-	evt.Msgf(format, a)
+	evt.Msgf(fmt.Sprintf(format, a) + "\n")
 }
 
 func (l *Logger) Error(ctx context.Context, msg string) {
@@ -67,7 +67,7 @@ func (l *Logger) Error(ctx context.Context, msg string) {
 	for k, v := range withCtx(ctx) {
 		evt = evt.Str(k, v)
 	}
-	evt.Msg(msg)
+	evt.Msg(msg + "\n")
 }
 
 func (l *Logger) Errorf(ctx context.Context, format string, a ...interface{}) {
@@ -75,7 +75,7 @@ func (l *Logger) Errorf(ctx context.Context, format string, a ...interface{}) {
 	for k, v := range withCtx(ctx) {
 		evt = evt.Str(k, v)
 	}
-	evt.Msgf(format, a)
+	evt.Msgf(fmt.Sprintf(format, a) + "\n")
 }
 
 func (l *Logger) Fatal(ctx context.Context, msg string) {
@@ -83,7 +83,7 @@ func (l *Logger) Fatal(ctx context.Context, msg string) {
 	for k, v := range withCtx(ctx) {
 		evt = evt.Str(k, v)
 	}
-	evt.Msg(msg)
+	evt.Msg(msg + "\n")
 }
 
 func (l *Logger) Fatalf(ctx context.Context, format string, a ...interface{}) {
@@ -91,12 +91,13 @@ func (l *Logger) Fatalf(ctx context.Context, format string, a ...interface{}) {
 	for k, v := range withCtx(ctx) {
 		evt = evt.Str(k, v)
 	}
-	evt.Msgf(format, a)
+	evt.Msgf(fmt.Sprintf(format, a) + "\n")
 }
 
 func (l *Logger) SetLevel(level string) {
 	Level, err := zerolog.ParseLevel(level)
 	if err != nil {
+		l.Logger.Error().Msgf("setLevel err:%v", err)
 		return
 	}
 	l.Logger.Level(Level)

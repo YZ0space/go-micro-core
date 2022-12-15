@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// register
+// register  etcd 服务注册 （预留）
 type etcdv3Registry struct {
 	Client *clientv3.Client
 	opt    registry.Options
@@ -155,7 +155,7 @@ func NewRegistry(opts ...registry.Option) registry.Registry {
 	}
 
 	ctx, cancel := context.WithCancel(context.TODO())
-	// TODO 暂时不支持TLS
+	// .... 不支持TLS
 	client, _ := clientv3.New(cfg)
 	regist := &etcdv3Registry{
 		Client: client,

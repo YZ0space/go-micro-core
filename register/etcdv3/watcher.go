@@ -8,6 +8,7 @@ import (
 	clientv3 "go.etcd.io/etcd/client/v3"
 )
 
+// etcd watcher
 type watcher struct {
 	watchChan clientv3.WatchChan
 }
