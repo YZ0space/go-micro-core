@@ -4,9 +4,9 @@ import (
 	"context"
 	"github.com/aka-yz/go-micro-core"
 	"github.com/aka-yz/go-micro-core/configs/log"
+	"github.com/aka-yz/go-micro-core/extension"
 	"github.com/aka-yz/go-micro-core/providers/constants"
 	"github.com/facebookgo/inject"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/config"
 	"net/http"
@@ -43,7 +43,14 @@ func (s *Server) Init() {
 		log.Errorf(context.Background(), "handler 异常")
 		return
 	}
-	handler.HandlerList()
+	s.r.Use(handler.MiddlewareList()...)
+	s.addHandlers(handler.HandlerList())
+}
+
+func (s *Server) addHandlers(HandlerList []*extension.GinHandlerRegister) {
+	for _, l := range HandlerList {
+		s.r.Handle(l.HttpMethod, l.RelativePath, l.Handlers...)
+	}
 }
 
 func (s *Server) Start() {
@@ -66,34 +73,15 @@ func (s *Server) Stop() {
 
 func newHTTPServer(cfg *serverConfig) *Server {
 	r := gin.New()
-	r.Use(gin.Logger())
-	r.Use(gin.Recovery())
-
-	// cors
-	corsConfig := cors.New(cors.Config{
-		AllowOrigins:     constants.AllowedOrigins,
-		AllowMethods:     []string{"POST", "GET"},
-		AllowHeaders:     constants.AllowedHeaders,
-		ExposeHeaders:    []string{"Content-Length"},
-		AllowCredentials: true,
-		// AllowOriginFunc: func(origin string) bool {
-		// 	return origin == "...."
-		// },
-		MaxAge: 12 * time.Hour,
-	})
-	r.Use(corsConfig)
-
-	HTTPserver := &http.Server{
-		Addr:              cfg.Addr,
-		Handler:           r,
-		ReadHeaderTimeout: 10 * time.Second, // we should be safe behind istio
-		ReadTimeout:       20 * time.Second, // setting them for go sec lint.
-		WriteTimeout:      20 * time.Second,
-	}
-	//server.addHandlers()
 	return &Server{
-		r:      r,
-		Server: HTTPserver,
+		r: r,
+		Server: &http.Server{
+			Addr:              cfg.Addr,
+			Handler:           r,
+			ReadHeaderTimeout: 10 * time.Second, // we should be safe behind istio
+			ReadTimeout:       20 * time.Second, // setting them for go sec lint.
+			WriteTimeout:      20 * time.Second,
+		},
 	}
 }
 
