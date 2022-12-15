@@ -5,6 +5,7 @@ import (
 	"github.com/aka-yz/go-micro-core"
 	"github.com/aka-yz/go-micro-core/configs/log"
 	"github.com/aka-yz/go-micro-core/providers/constants"
+	"github.com/facebookgo/inject"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/config"
@@ -17,7 +18,13 @@ type serverFactory struct{}
 
 func (s *serverFactory) NewProvider(conf config.Provider) go_micro_core.Provider {
 	if cfg := getServerConfig(conf); cfg != nil {
-		return go_micro_core.NewProvider(newHTTPServer(cfg))
+		srv := newHTTPServer(cfg)
+		return go_micro_core.ProvideFunc(func() []*inject.Object {
+			name := constants.ConfigSrvKey
+			return []*inject.Object{
+				&inject.Object{Name: name, Value: srv},
+			}
+		})
 	}
 	return nil
 }
@@ -28,6 +35,15 @@ type Server struct {
 
 	closeSyncJob  chan<- struct{}
 	syncJobClosed <-chan struct{}
+}
+
+func (s *Server) Init() {
+	handler := go_micro_core.ScanGinHandler(constants.HandlerInjectName)
+	if handler == nil {
+		log.Errorf(context.Background(), "handler 异常")
+		return
+	}
+	handler.HandlerList()
 }
 
 func (s *Server) Start() {

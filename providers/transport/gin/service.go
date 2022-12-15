@@ -28,7 +28,6 @@ type RPCService struct {
 }
 
 // Name returns service method name
-// TODO: remove or use info.Name here?
 func (s *RPCService) Name() string {
 	return s.name
 }

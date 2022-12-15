@@ -7,6 +7,5 @@ import (
 func init() {
 	go_micro_core.RegisterProvider(
 		&serverFactory{},
-		&clientFactory{},
 	)
 }

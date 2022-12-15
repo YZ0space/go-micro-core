@@ -1,18 +1,11 @@
 package http
 
 import (
-	"github.com/aka-yz/go-micro-core"
 	"github.com/aka-yz/go-micro-core/providers/constants"
 	"github.com/aka-yz/go-micro-core/providers/option"
 	"go.uber.org/config"
 	"time"
 )
-
-type clientFactory struct{}
-
-func (n *clientFactory) NewProvider(conf config.Provider) go_micro_core.Provider {
-	return go_micro_core.NewProvider(newHTTPClient(getClientConfig(conf)))
-}
 
 func newHTTPClient(cfg *option.HttpClientConfig) *HttpClient {
 	var opt []Option

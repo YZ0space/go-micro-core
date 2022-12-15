@@ -6,7 +6,13 @@ const (
 	ConfigKeyRedis      = "redis"
 	ConfigKeyLog        = "log"
 	ConfigHttpClient    = "httpclient"
+	ConfigSrvKey        = "gin-server"
 	ConfigApp           = "app"
+
+	HandlerInjectName = "handler"
+
+	GinMethodGet  = "get"
+	GinMethodPost = "post"
 )
 
 // AllowedOrigins used in local test only
