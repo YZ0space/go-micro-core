@@ -11,11 +11,14 @@ micro service core module, include:
 - app config(yaml, based viper) read & config
 - mysql, pg, redis connection initial
 - cron-job
+- kafka broker publish & subscribe
+- monitor prometheus
+
 
 use it:
 
 ````
-  go get -u "github.com/aka-yz/go-micro-core"
+  go get -u "github.com/aka-yz/go-micro-core@1.0.3"
 ````
 
 
@@ -28,3 +31,7 @@ mysql-client: https://github.com/gocraft/dbr/v2
 log: https://github.com/rs/zerolog
 
 cron-job: https://github.com/robfig/cron
+
+kafka-broker-client: https://github.com/Shopify/sarama
+
+service-registry: https://github.com/etcd-io/etcd
