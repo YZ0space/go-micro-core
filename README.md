@@ -15,7 +15,7 @@ micro service core module, include:
 use it:
 
 ````
-  go get -u "github.com/aka-yz/go-micro-core@v0.0.4"
+  go get -u "github.com/aka-yz/go-micro-core@v1.0.7"
 ````
 
 
