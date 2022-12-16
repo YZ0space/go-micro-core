@@ -6,7 +6,6 @@ import (
 	hp "github.com/aka-yz/go-micro-core/providers/transport/http"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"net/http"
 )
 
 type PrometheusMetrics struct {
@@ -24,19 +23,15 @@ func NewPrometheusMetrics(hs *hp.Server) *PrometheusMetrics {
 	}
 }
 
-func PromHandler(handler http.Handler) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		handler.ServeHTTP(c.Writer, c.Request)
-	}
-}
-
 func (m *PrometheusMetrics) Init() {
 	m.HTTPServer.AddHandlers([]*extension.GinHandlerRegister{
 		{
 			HttpMethod:   constants.GinMethodGet,
 			RelativePath: "/metrics",
 			Handlers: []gin.HandlerFunc{
-				PromHandler(promhttp.Handler()),
+				func(c *gin.Context) {
+					promhttp.Handler().ServeHTTP(c.Writer, c.Request)
+				},
 			},
 		},
 	})
