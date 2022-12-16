@@ -8,6 +8,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
+// 待注入，与server一起注入目前会导致 cycle inject
 type PrometheusMetrics struct {
 	HTTPServer *hp.Server
 }
@@ -16,12 +17,6 @@ const (
 	SUCCESS string = "success"
 	Fail    string = "fail"
 )
-
-func NewPrometheusMetrics(hs *hp.Server) *PrometheusMetrics {
-	return &PrometheusMetrics{
-		HTTPServer: hs,
-	}
-}
 
 func (m *PrometheusMetrics) Init() {
 	m.HTTPServer.AddHandlers([]*extension.GinHandlerRegister{

@@ -2,7 +2,6 @@ package http
 
 import (
 	"github.com/aka-yz/go-micro-core"
-	"github.com/aka-yz/go-micro-core/monitors"
 	"github.com/aka-yz/go-micro-core/providers/constants"
 	"github.com/facebookgo/inject"
 	"go.uber.org/config"
@@ -17,7 +16,7 @@ func (s *serverFactory) NewProvider(conf config.Provider) go_micro_core.Provider
 			name := constants.ConfigSrvKey
 			return []*inject.Object{
 				{Name: name, Value: srv},
-				{Value: monitors.NewPrometheusMetrics(srv)},
+				//{Value: monitor.NewPrometheusMetrics(srv)},
 			}
 		})
 	}
