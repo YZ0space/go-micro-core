@@ -25,7 +25,7 @@ func Run(objs ...interface{}) {
 	// step-1: initial env, configs, log configuration
 	initEnv()
 	initConfig()
-	initLog(conf)
+	//initLog(conf)
 
 	// step-2: register providers(objs)
 	RegisterProvider(objs...)

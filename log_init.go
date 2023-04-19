@@ -18,5 +18,5 @@ func initLog(conf config.Provider) {
 		panic(err)
 	}
 	fmt.Printf("cfg:%v monitor\n", cfg)
-	log2.InitLogger(&cfg)
+	//log2.InitLogger(&cfg)
 }
