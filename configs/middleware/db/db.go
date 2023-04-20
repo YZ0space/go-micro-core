@@ -67,6 +67,10 @@ func OpenDB(option *option.DB) *Connection {
 	if err != nil {
 		panic(err)
 	}
+	err = conn.Ping()
+	if err != nil {
+		panic(err)
+	}
 	if option.MaxIdleConns == 0 {
 		option.MaxIdleConns = 200
 	}
