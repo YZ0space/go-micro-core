@@ -76,7 +76,11 @@ func OpenDB(option *option.DB) *Connection {
 	if option.ConnMaxLifetime == 0 {
 		option.ConnMaxLifetime = 600
 	}
-	conn.Dialect = &mysql{}
+	if option.Driver == "postgres" {
+		conn.Dialect = &postgres{}
+	} else {
+		conn.Dialect = &mysql{}
+	}
 	conn.SetMaxIdleConns(option.MaxIdleConns)
 	conn.SetMaxOpenConns(option.MaxOpenConns)
 	conn.SetConnMaxLifetime(time.Duration(option.ConnMaxLifetime) * time.Second)
