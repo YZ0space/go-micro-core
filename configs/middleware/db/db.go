@@ -8,7 +8,6 @@ import (
 	"github.com/jackc/pgx/v5"
 	_ "github.com/lib/pq"
 	"github.com/rs/zerolog/log"
-	"os"
 )
 
 type Connection struct {
@@ -48,7 +47,7 @@ func OpenDB(option *option.DB) *Connection {
 	var conn *pgx.Conn
 	var err error
 	//var logEventReceiver = NewEventReceiver(dbName(option.DataSource), 200, 200)
-	conn, err = pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
+	conn, err = pgx.Connect(context.Background(), option.DataSource)
 	if err != nil {
 		log.Error().Err(err).Msgf("Unable to connect to database: %v\n", err)
 		panic(err)
