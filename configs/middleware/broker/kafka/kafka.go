@@ -5,8 +5,8 @@ import (
 	"crypto/sha512"
 	"encoding/json"
 	"fmt"
-	"github.com/aka-yz/go-micro-core/configs/log"
 	"github.com/aka-yz/go-micro-core/configs/middleware/broker"
+	"github.com/rs/zerolog/log"
 	"hash"
 	"runtime"
 	"time"
@@ -38,11 +38,11 @@ func (k *Kafka) Publish(topic string, message interface{}, opts ...broker.Publis
 		Value: sarama.ByteEncoder(msg),
 	})
 	if err != nil {
-		log.Infof(context.TODO(), "msg:%v partition:%v offset:%v err:%v", string(msg), partition, offset, err)
+		log.Info().Msgf("msg:%v partition:%v offset:%v err:%v", string(msg), partition, offset, err)
 		return
 	}
 
-	log.Debugf(context.TODO(), "kafka publish success topic:%v msg:%v", topic, msg)
+	log.Debug().Msgf("kafka publish success topic:%v msg:%v", topic, msg)
 	return
 }
 
@@ -64,10 +64,10 @@ func (k *Kafka) PublishWithCtx(ctx context.Context, topic string, message interf
 		Value: sarama.ByteEncoder(msg),
 	})
 	if err != nil {
-		log.Infof(ctx, "msg:%v partition:%v offset:%v err:%v", string(msg), partition, offset, err)
+		log.Info().Msgf("msg:%v partition:%v offset:%v err:%v", string(msg), partition, offset, err)
 		return
 	}
-	log.Debugf(ctx, "kafka publish success topic:%v msg:%v", topic, msg)
+	log.Debug().Msgf("kafka publish success topic:%v msg:%v", topic, msg)
 	return
 }
 
@@ -91,11 +91,11 @@ func (k *Kafka) BatchPublish(topic string, messages []interface{}, opts ...broke
 	}
 	err = k.p.SendMessages(msgs)
 	if err != nil {
-		log.Infof(context.TODO(), "msgs len:%v partition:%v offset:%v err:%v", len(msgs), err)
+		log.Info().Msgf("msgs len:%v partition:%v offset:%v err:%v", len(msgs), err)
 		return
 	}
 
-	log.Debugf(context.TODO(), "kafka publish success topic:%v msg len:%v", topic, len(msgs))
+	log.Debug().Msgf("kafka publish success topic:%v msg len:%v", topic, len(msgs))
 	return
 }
 
@@ -111,11 +111,11 @@ func (k *Kafka) BatchPublishWithPartition(topic string, messages map[string]inte
 	}
 	err = k.p.SendMessages(msgs)
 	if err != nil {
-		log.Infof(context.TODO(), "msgs len:%v partition:%v offset:%v err:%v", len(msgs), err)
+		log.Info().Msgf("msgs len:%v partition:%v offset:%v err:%v", len(msgs), err)
 		return
 	}
 
-	log.Debugf(context.TODO(), "kafka publish success topic:%v msg len:%v", topic, len(msgs))
+	log.Debug().Msgf("kafka publish success topic:%v msg len:%v", topic, len(msgs))
 	return
 }
 
@@ -132,11 +132,11 @@ func (k *Kafka) BatchPublishWithPartitionWithCtx(ctx context.Context, topic stri
 	}
 	err = k.p.SendMessages(msgs)
 	if err != nil {
-		log.Infof(ctx, "msgs len:%v partition:%v offset:%v err:%v", len(msgs), err)
+		log.Info().Msgf("msgs len:%v partition:%v offset:%v err:%v", len(msgs), err)
 		return
 	}
 
-	log.Debugf(ctx, "kafka publish success topic:%v msg len:%v", topic, len(msgs))
+	log.Debug().Msgf("kafka publish success topic:%v msg len:%v", topic, len(msgs))
 	return
 }
 
@@ -218,7 +218,7 @@ func (k *Kafka) AsyncPublish(topic string, message interface{}, opts ...broker.P
 	}
 	k.ap.Input() <- sendMsg
 
-	log.Debugf(context.TODO(), "kafka asyncReport send message success topic:%v msg:%v", topic, msg)
+	log.Debug().Msgf("kafka asyncReport send message success topic:%v msg:%v", topic, msg)
 	return
 }
 
@@ -229,10 +229,10 @@ func (k *Kafka) KafkaAsyncProducer() {
 		select {
 		case err := <-errors:
 			if err != nil {
-				log.Errorf(context.TODO(), "asyncProducer error: %+v", err)
+				log.Error().Msgf("asyncProducer error: %+v", err)
 			}
 		case <-success:
-			log.Debugf(context.TODO(), "asyncProducer success.")
+			log.Debug().Msgf("asyncProducer success.")
 		}
 	}
 }
@@ -251,19 +251,19 @@ func (k *Kafka) Subscribe(topic string, channel string, handler broker.HandlerFu
 	}
 	k.c, err = k.getConsumer(client, channel)
 	if err != nil {
-		log.Errorf(context.TODO(), "kafka get consumer err:%v\n", err)
+		log.Error().Msgf("kafka get consumer err:%v\n", err)
 		panic(err)
 	}
 	partitions, err := k.c.Partitions(topic)
 	if err != nil {
-		log.Errorf(context.TODO(), "kafka partition get err:%v\n", err)
+		log.Error().Msgf("kafka partition get err:%v\n", err)
 		panic(err)
 	}
 
 	for _, partitionId := range partitions {
 		partitionConsumer, err := k.c.ConsumePartition(topic, partitionId, sarama.OffsetNewest)
 		if err != nil {
-			log.Errorf(context.TODO(), "kafka consumer partition partitionId:%v, err:%v\n", partitionId, err)
+			log.Error().Msgf("kafka consumer partition partitionId:%v, err:%v\n", partitionId, err)
 			panic(err)
 		}
 
@@ -274,14 +274,14 @@ func (k *Kafka) Subscribe(topic string, channel string, handler broker.HandlerFu
 					buf := make([]byte, 8192)
 					n := runtime.Stack(buf, false)
 					stackInfo := fmt.Sprintf("%s", buf[:n])
-					log.Errorf(context.Background(), "err: %v, panic stack info %s", pErr, stackInfo)
+					log.Error().Msgf("err: %v, panic stack info %s", pErr, stackInfo)
 				}
 			}()
 			for msg := range pc.Messages() {
 				newCtx := context.TODO()
-				log.Infof(newCtx, "partitionId: %d; offset:%d, value: %s\n", msg.Partition, msg.Offset, msg.Value)
+				log.Info().Msgf("partitionId: %d; offset:%d, value: %s\n", msg.Partition, msg.Offset, msg.Value)
 				if err = handler(newCtx, msg.Value); err != nil {
-					log.Errorf(newCtx, "topic:%v msg:%v handle error:%v\n", msg.Topic, string(msg.Value), err)
+					log.Error().Err(err).Msgf("topic:%v msg:%v handle error:%v\n", msg.Topic, string(msg.Value), err)
 					continue
 				}
 			}
@@ -294,7 +294,7 @@ func (k *Kafka) getConsumer(client sarama.Client, channel string) (sarama.Consum
 	consumer, err := sarama.NewConsumerFromClient(client)
 	defer consumer.Close()
 	if err != nil {
-		log.Errorf(context.TODO(), "kafka consumer close err:%v", err)
+		log.Error().Msgf("kafka consumer close err:%v", err)
 		panic(err)
 	}
 	if err := client.RefreshCoordinator(channel); err != nil {
@@ -307,7 +307,7 @@ func (k *Kafka) UnSubscribe() (err error) {
 	if errClose := k.c.Close(); errClose != nil {
 		err = errClose
 		topics, err := k.c.Topics()
-		log.Errorf(context.TODO(), "kafka unsubscribe error, consumer: %+v, err: %v", topics, err)
+		log.Error().Msgf("kafka unsubscribe error, consumer: %+v, err: %v", topics, err)
 	}
 	return
 }

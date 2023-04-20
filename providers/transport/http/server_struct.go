@@ -3,10 +3,10 @@ package http
 import (
 	"context"
 	"github.com/aka-yz/go-micro-core"
-	"github.com/aka-yz/go-micro-core/configs/log"
 	"github.com/aka-yz/go-micro-core/extension"
 	"github.com/aka-yz/go-micro-core/providers/constants"
 	"github.com/gin-gonic/gin"
+	"github.com/rs/zerolog/log"
 	"go.uber.org/config"
 	"net/http"
 	"os"
@@ -25,7 +25,7 @@ type Server struct {
 func (s *Server) Init() {
 	handler := go_micro_core.ScanGinHandler(constants.HandlerInjectName)
 	if handler == nil {
-		log.Warnf(context.Background(), "handler 异常")
+		log.Warn().Msgf("handler 异常")
 
 		return
 	}
@@ -53,11 +53,11 @@ func (s *Server) Stop() {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	if err := s.Server.Shutdown(ctx); err != nil {
-		log.Errorf(context.TODO(), "Failed to gracefully shutdown server: %s", err)
+		log.Error().Err(err).Msgf("Failed to gracefully shutdown server: %s", err)
 	}
 	select {
 	case <-ctx.Done():
-		log.Info(context.TODO(), "gracefully shutdown gin server and attached go routines: timeout")
+		log.Error().Msgf("gracefully shutdown gin server and attached go routines: timeout")
 	}
 }
 
@@ -133,7 +133,7 @@ func Logger() gin.HandlerFunc {
 		}
 
 		param.Path = path
-		log.Infof(c, "[GIN] %3d| %13v | %15s |%-7s %#v |%s",
+		log.Info().Msgf("[GIN] %3d| %13v | %15s |%-7s %#v |%s",
 			param.StatusCode,
 			param.Latency,
 			param.ClientIP,

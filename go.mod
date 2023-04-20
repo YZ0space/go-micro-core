@@ -5,6 +5,7 @@ go 1.18
 replace google.golang.org/grpc => google.golang.org/grpc v1.29.0
 
 require (
+	github.com/rs/zerolog v1.28.0
 	github.com/Shopify/sarama v1.37.2
 	github.com/facebookgo/inject v0.0.0-20180706035515-f23751cae28b
 	github.com/gin-gonic/gin v1.8.1

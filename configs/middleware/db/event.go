@@ -1,9 +1,8 @@
 package db
 
 import (
-	"context"
 	"fmt"
-	"github.com/aka-yz/go-micro-core/configs/log"
+	"github.com/rs/zerolog/log"
 	"os"
 	"strings"
 	"time"
@@ -36,18 +35,18 @@ func NewEventReceiver(dbname string, costThreshold int64, lenThreshold int64) *s
 
 // Event receives a simple notification when various events occur
 func (s *sqlEventReceiver) Event(eventName string) {
-	log.Infof(context.TODO(), "DB Event name %v", eventName)
+	log.Info().Msgf("DB Event name %v", eventName)
 }
 
 // EventKv receives a notification when various events occur along with
 // optional key/value data
 func (s *sqlEventReceiver) EventKv(eventName string, kvs map[string]string) {
-	log.Infof(context.TODO(), "DB EventKv name %v kv %v", eventName, kvs)
+	log.Info().Msgf("DB EventKv name %v kv %v", eventName, kvs)
 }
 
 // EventErr receives a notification of an error if one occurs
 func (s *sqlEventReceiver) EventErr(eventName string, err error) error {
-	log.Errorf(context.TODO(), "DB EventErr name:%v err:%v", eventName, err)
+	log.Error().Err(err).Msgf("DB EventErr name:%v err:%v", eventName, err)
 	return err
 }
 
@@ -55,9 +54,9 @@ func (s *sqlEventReceiver) EventErr(eventName string, err error) error {
 // optional key/value data
 func (s *sqlEventReceiver) EventErrKv(eventName string, err error, kvs map[string]string) error {
 	if err != nil && strings.Contains(err.Error(), "Duplicate entry") {
-		log.Warnf(context.TODO(), "DB EventErr name:%v err:%v kvs:%v", eventName, err, kvs)
+		log.Warn().Msgf("DB EventErr name:%v err:%v kvs:%v", eventName, err, kvs)
 	} else {
-		log.Errorf(context.TODO(), "DB EventErr name:%v err:%v kvs:%v", eventName, err, kvs)
+		log.Error().Err(err).Msgf("DB EventErr name:%v err:%v kvs:%v", eventName, err, kvs)
 	}
 	//table, operator := table(kvs["sql"])
 	return err
@@ -67,7 +66,7 @@ func (s *sqlEventReceiver) EventErrKv(eventName string, err error, kvs map[strin
 func (s *sqlEventReceiver) Timing(eventName string, nanoseconds int64) {
 	t := int64(time.Duration(nanoseconds) / time.Millisecond)
 	if t > s.costThreshold {
-		log.Infof(context.TODO(), "DB Timing name:%v cost:%v", eventName, time.Duration(nanoseconds).String())
+		log.Info().Msgf("DB Timing name:%v cost:%v", eventName, time.Duration(nanoseconds).String())
 	}
 }
 
@@ -80,10 +79,10 @@ func (s *sqlEventReceiver) TimingKv(eventName string, nanoseconds int64, kvs map
 				kvs[key] = val[:s.logLength] + "..."
 			}
 		}
-		log.Infof(context.TODO(), "DB TimingKv name:%v kv:%v cost:%v", eventName, kvs, time.Duration(nanoseconds).String())
+		log.Info().Msgf("DB TimingKv name:%v kv:%v cost:%v", eventName, kvs, time.Duration(nanoseconds).String())
 	}
 	if s.mod == UnitTestMod {
-		log.Infof(context.TODO(), "DB TimingKv name:%v kv:%v", eventName, kvs)
+		log.Info().Msgf("DB TimingKv name:%v kv:%v", eventName, kvs)
 	}
 	//table, operator := table(kvs["sql"])
 
