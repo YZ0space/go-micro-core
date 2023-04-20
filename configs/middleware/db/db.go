@@ -1,101 +1,57 @@
 package db
 
 import (
+	"context"
 	"fmt"
 	"github.com/aka-yz/go-micro-core/providers/option"
 	_ "github.com/go-sql-driver/mysql"
-	"github.com/gocraft/dbr/v2"
-	"time"
+	"github.com/jackc/pgx/v5"
+	_ "github.com/lib/pq"
+	"github.com/rs/zerolog/log"
+	"os"
 )
 
 type Connection struct {
-	*dbr.Connection
+	*pgx.Conn
 }
 
 func (d *Connection) Stop() {
-	if err := d.Close(); err != nil {
+	if err := d.Close(context.Background()); err != nil {
 		panic(err)
 	}
 }
 
-func (d *Connection) NewSession() *dbr.Session {
-	return d.Connection.NewSession(nil)
-}
+//func (d *Connection) NewSession() *dbr.Session {
+//	return d.Connection.NewSession(nil)
+//}
 
 func OpenDB(option *option.DB) *Connection {
 	if option.Port == 0 {
-		option.Port = 3306
+		option.Port = 5432
 	}
 
 	if option.Host == "" {
 		option.Host = "localhost"
 	}
 
-	if option.DataSource == "" {
-		option.DataSource = fmt.Sprintf("%s:%s@tcp(%s)/%s?charset=utf8mb4&parseTime=true&loc=Local",
+	// postgres://username:password@localhost:5432/database_name
+	if option.Driver == "postgres" {
+		option.DataSource = fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
 			option.UserName,
 			option.Password,
-			fmt.Sprintf("%s:%d", option.Host, option.Port),
-			option.DBName,
-		)
-		timeout := option.Timeout
-		if timeout == 0 {
-			timeout = 3
-		}
-		option.DataSource += fmt.Sprintf("&timeout=%ds", timeout)
-
-		readTimeout := option.ReadTimeout
-		if readTimeout == 0 {
-			readTimeout = 8
-		}
-		option.DataSource += fmt.Sprintf("&readTimeout=%ds", readTimeout)
-
-		writeTimeout := option.WriteTimeout
-		if writeTimeout == 0 {
-			writeTimeout = 8
-		}
-		option.DataSource += fmt.Sprintf("&writeTimeout=%ds", writeTimeout)
-	}
-	if option.Driver == "" {
-		option.Driver = "mysql"
-	}
-	if option.Driver == "postgres" {
-		option.DataSource = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
 			option.Host,
 			option.Port,
-			option.UserName,
-			option.Password,
 			option.DBName,
 		)
 	}
 
-	var conn *dbr.Connection
+	var conn *pgx.Conn
 	var err error
-	var logEventReceiver = NewEventReceiver(dbName(option.DataSource), 200, 200)
-	conn, err = dbr.Open(option.Driver, option.DataSource, logEventReceiver)
+	//var logEventReceiver = NewEventReceiver(dbName(option.DataSource), 200, 200)
+	conn, err = pgx.Connect(context.Background(), os.Getenv("DATABASE_URL"))
 	if err != nil {
+		log.Error().Err(err).Msgf("Unable to connect to database: %v\n", err)
 		panic(err)
 	}
-	err = conn.Ping()
-	if err != nil {
-		panic(err)
-	}
-	if option.MaxIdleConns == 0 {
-		option.MaxIdleConns = 200
-	}
-	if option.MaxOpenConns == 0 {
-		option.MaxOpenConns = 200
-	}
-	if option.ConnMaxLifetime == 0 {
-		option.ConnMaxLifetime = 600
-	}
-	if option.Driver == "postgres" {
-		conn.Dialect = &postgres{}
-	} else {
-		conn.Dialect = &mysql{}
-	}
-	conn.SetMaxIdleConns(option.MaxIdleConns)
-	conn.SetMaxOpenConns(option.MaxOpenConns)
-	conn.SetConnMaxLifetime(time.Duration(option.ConnMaxLifetime) * time.Second)
-	return &Connection{Connection: conn}
+	return &Connection{Conn: conn}
 }
