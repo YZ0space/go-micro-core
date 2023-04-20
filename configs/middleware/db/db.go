@@ -59,6 +59,15 @@ func OpenDB(option *option.DB) *Connection {
 	if option.Driver == "" {
 		option.Driver = "mysql"
 	}
+	if option.Driver == "postgres" {
+		option.DataSource = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
+			option.Host,
+			option.Port,
+			option.UserName,
+			option.Password,
+			option.DBName,
+		)
+	}
 
 	var conn *dbr.Connection
 	var err error
